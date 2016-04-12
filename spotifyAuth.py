@@ -23,8 +23,10 @@ access_token = ''
 ''' CONSTANTS '''
 USER_ID = '1248308979'
 SPOTIFY_API_URL = 'https://api.spotify.com/'
-CLIENT_ID = 'f9c78ea0cd2347f1bff7843192120461'
-CLIENT_SECRET = 'f1320710dfe842bb9c228d4dbcefa881'
+#Visit https://developer.spotify.com to create your ID and Secret!
+CLIENT_ID = 'XXXXXXXXXXXXXX'
+CLIENT_SECRET = 'XXXXXXXXXXXXX'
+#This URI can be set in the spotify developer console. Make it your localHost/callback add it and save it
 REDIRECT_URI = 'http://127.0.0.1:5000/spotify_callback'
 SPOTIFY_API_ENDPOINTS = {'audio_features': 'v1/audio-features/', 
 						'track': 'v1/tracks/%s', 
