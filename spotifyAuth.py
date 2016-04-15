@@ -4,11 +4,29 @@ Authorize Spotify API:
 	client secret for project cpe695-music-classification.
 	API used to aquire the music dataset.
 
+Date: 04/04/2016
+
 Author(s): 
 	Jorge Rojas
 
-Date: 04/04/2016
+Genres to be considered: 
+		Trance
+		Indie Rock
+		Jazz
+		Pop
+
+Track Audio Features Example:
+	{
+		u'track_href': u'https://api.spotify.com/v1/tracks/2f1sMZx3jWEkswEHq6HFgV', 
+		u'analysis_url': u'http://echonest-analysis.s3.amazonaws.com/TR/wL2hQwAeevmp7w-NPnDY72TdDuOnd3wxp_fVL3eK5T-Fs5o11vMbhiRZw0zQdsL4Xf5cq0yXg9uoWd0Xw=/3/full.json?AWSAccessKeyId=AKIAJRDFEY23UEVW42BQ&Expires=1459987283&Signature=szV90VZUBfLvhHxtTJKs0vhNvBs%3D', 
+		u'energy': 0.885, u'liveness': 0.0869, u'tempo': 155.02, u'speechiness': 0.0375, 
+		u'uri': u'spotify:track:2f1sMZx3jWEkswEHq6HFgV', u'acousticness': 4.22e-05, 
+		u'instrumentalness': 0.00333, u'time_signature': 4, u'danceability': 0.467, 
+		u'key': 1, u'duration_ms': 214861, u'loudness': -4.852, u'valence': 0.439, 
+		u'type': u'audio_features', u'id': u'2f1sMZx3jWEkswEHq6HFgV', u'mode': 1
+	}
 '''
+
 import json
 import requests
 import requests.auth
@@ -23,61 +41,46 @@ access_token = ''
 ''' CONSTANTS '''
 USER_ID = '1248308979'
 SPOTIFY_API_URL = 'https://api.spotify.com/'
-#Visit https://developer.spotify.com to create your ID and Secret!
-CLIENT_ID = 'XXXXXXXXXXXXXX'
-CLIENT_SECRET = 'XXXXXXXXXXXXX'
+CLIENT_ID = 'XXXXXXXXXX'	#Visit https://developer.spotify.com to create your ID and Secret!
+CLIENT_SECRET = 'XXXXXXXXXX'
+
 #This URI can be set in the spotify developer console. Make it your localHost/callback add it and save it
 REDIRECT_URI = 'http://127.0.0.1:5000/spotify_callback'
+SPOTIFY_PLAYLISTS = {'training':'2VB8ds8bjD78gVHRsCcMTl', 'testing':'6etBG7ccLcMhQb4nUud9UE'}
 SPOTIFY_API_ENDPOINTS = {'audio_features': 'v1/audio-features/', 
 						'track': 'v1/tracks/%s', 
-						'playlists': 'v1/users/' + USER_ID + '/playlists'}
+						'playlists': 'v1/users/' + USER_ID + '/playlists/'}
 
 ''' UTILITY FUNCTIONS'''
 def crawl_spotify_data(access_token):
-	playlist_url = SPOTIFY_API_URL + SPOTIFY_API_ENDPOINTS['playlists']
+	''' Get Training Playlist '''
+	playlist_url = SPOTIFY_API_URL + SPOTIFY_API_ENDPOINTS['playlists'] + SPOTIFY_PLAYLISTS['training']
+	print playlist_url	#DEBUGGING
 	res = curl(playlist_url, authToken = access_token)
-	# print res
-	track_train_samples = []	#List of multi-dimensional track samples
+	# print res 	#DEBUGGING
 	res_json = json.loads(res)
-	playlists_json = res_json["items"]
-	for i, playlist in enumerate(playlists_json):
-		tracks_url = playlist['tracks']['href']
-		res = curl(tracks_url, authToken = access_token)
-		t_res_json = json.loads(res)
-		tracks_json = t_res_json['items']
-		if i == 4:	break
-		for i, track in enumerate(tracks_json):
-			audio_features_url = SPOTIFY_API_URL + SPOTIFY_API_ENDPOINTS['audio_features'] + track['track']['id']
-			# print audio_features_url
-			res = curl(audio_features_url, authToken = access_token)
-			res_json = json.loads(res)
-			print res_json
-			# audio_features_json = res_json['items']
-			# for feature in audio_features_json:
-			# 	print feature
-			# print track['track']['id']
-			break
-'''
-EXAMPLE AUDIO FEATURES OF TRACK {ID}
-{u'track_href': u'https://api.spotify.com/v1/tracks/2f1sMZx3jWEkswEHq6HFgV', 
-u'analysis_url': u'http://echonest-analysis.s3.amazonaws.com/TR/wL2hQwAeevmp7w-NPnDY72TdDuOnd3wxp_fVL3eK5T-Fs5o11vMbhiRZw0zQdsL4Xf5cq0yXg9uoWd0Xw=/3/full.json?AWSAccessKeyId=AKIAJRDFEY23UEVW42BQ&Expires=1459987283&Signature=szV90VZUBfLvhHxtTJKs0vhNvBs%3D', 
-u'energy': 0.885, 
-u'liveness': 0.0869, 
-u'tempo': 155.02, 
-u'speechiness': 0.0375, 
-u'uri': u'spotify:track:2f1sMZx3jWEkswEHq6HFgV', 
-u'acousticness': 4.22e-05, 
-u'instrumentalness': 0.00333, 
-u'time_signature': 4, 
-u'danceability': 0.467, 
-u'key': 1, 
-u'duration_ms': 214861, 
-u'loudness': -4.852, 
-u'valence': 0.439, 
-u'type': u'audio_features', 
-u'id': u'2f1sMZx3jWEkswEHq6HFgV', 
-u'mode': 1}
-'''			
+	print json.dumps(res_json, indent=4, sort_keys=True)	#DEBUGGING
+
+	''' Get Training Tracks '''
+	tracks_url = res_json['tracks']['href']
+	print "TRACK URL => %s"%tracks_url[:tracks_url.index('&')]	#DEBUGGING
+	res = curl(tracks_url[:tracks_url.index('&')], authToken = access_token)
+	res_json = json.loads(res)
+	tracks_json = res_json['items']
+
+	''' Get Track Features'''
+	for i, track in enumerate(tracks_json):
+		audio_features_url = SPOTIFY_API_URL + SPOTIFY_API_ENDPOINTS['audio_features'] + track['track']['id']
+		# print audio_features_url 	#DEBUGGING
+		res = curl(audio_features_url, authToken = access_token)
+		res_json = json.loads(res)
+		temp_feature_vector = [res_json['energy'], res_json['liveness'], res_json['tempo'], 
+							res_json['speechiness'], res_json['acousticness'], res_json['instrumentalness'], 
+							res_json['danceability'], res_json['loudness'], res_json['valence']]
+		train_data.append(temp_feature_vector)
+
+	print "Number of training samples: %s"%len(train_data)
+	print train_data		
 
 def curl( url, data = None, authToken = None ):
 
@@ -142,9 +145,9 @@ def spotify_callback():
 	crawl_spotify_data(access_token)
 	return "got an access token! %s" % access_token
 
-def main():
+def runAuth():
 	app.run(debug=True, port=5000)
 
 if __name__ == '__main__':
-	main()
+	runAuth()
 
