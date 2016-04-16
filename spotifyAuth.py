@@ -41,8 +41,8 @@ access_token = ''
 ''' CONSTANTS '''
 USER_ID = '1248308979'
 SPOTIFY_API_URL = 'https://api.spotify.com/'
-CLIENT_ID = 'XXXXXXXXXX'	#Visit https://developer.spotify.com to create your ID and Secret!
-CLIENT_SECRET = 'XXXXXXXXXX'
+CLIENT_ID = 'f9c78ea0cd2347f1bff7843192120461'	#Visit https://developer.spotify.com to create your ID and Secret!
+CLIENT_SECRET = 'f1320710dfe842bb9c228d4dbcefa881'
 
 #This URI can be set in the spotify developer console. Make it your localHost/callback add it and save it
 REDIRECT_URI = 'http://127.0.0.1:5000/spotify_callback'
@@ -70,6 +70,8 @@ def crawl_spotify_data(access_token):
 
 	''' Get Track Features'''
 	for i, track in enumerate(tracks_json):
+		if i > 10: break
+
 		audio_features_url = SPOTIFY_API_URL + SPOTIFY_API_ENDPOINTS['audio_features'] + track['track']['id']
 		# print audio_features_url 	#DEBUGGING
 		res = curl(audio_features_url, authToken = access_token)
