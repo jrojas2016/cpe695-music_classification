@@ -39,50 +39,54 @@ train_data = []
 access_token = ''
 
 ''' CONSTANTS '''
+NUM_SONGS = 297
 USER_ID = '1248308979'
 SPOTIFY_API_URL = 'https://api.spotify.com/'
-CLIENT_ID = 'XXXXXXXXXX'	#Visit https://developer.spotify.com to create your ID and Secret!
-CLIENT_SECRET = 'XXXXXXXXXX'
+CLIENT_ID = 'f9c78ea0cd2347f1bff7843192120461'	#Visit https://developer.spotify.com to create your ID and Secret!
+CLIENT_SECRET = 'f1320710dfe842bb9c228d4dbcefa881'
 
 #This URI can be set in the spotify developer console. Make it your localHost/callback add it and save it
 REDIRECT_URI = 'http://127.0.0.1:5000/spotify_callback'
 SPOTIFY_PLAYLISTS = {'training':'2VB8ds8bjD78gVHRsCcMTl', 'testing':'6etBG7ccLcMhQb4nUud9UE'}
-SPOTIFY_API_ENDPOINTS = {'audio_features': 'v1/audio-features/', 
+SPOTIFY_API_ENDPOINTS = {'audio_features': 'v1/audio-features?ids=', 
 						'track': 'v1/tracks/%s', 
 						'playlists': 'v1/users/' + USER_ID + '/playlists/'}
 
 ''' UTILITY FUNCTIONS'''
-def crawl_spotify_data(access_token):
+def crawl_spotify_data(accessToken):
 	''' Get Training Playlist '''
 	playlist_url = SPOTIFY_API_URL + SPOTIFY_API_ENDPOINTS['playlists'] + SPOTIFY_PLAYLISTS['training']
-	print playlist_url	#DEBUGGING
-	res = curl(playlist_url, authToken = access_token)
+	# print playlist_url	#DEBUGGING
+	res_json = curl(playlist_url, authToken = accessToken)
 	# print res 	#DEBUGGING
-	res_json = json.loads(res)
-	print json.dumps(res_json, indent=4, sort_keys=True)	#DEBUGGING
 
 	''' Get Training Tracks '''
 	tracks_url = res_json['tracks']['href']
-	print "TRACK URL => %s"%tracks_url[:tracks_url.index('&')]	#DEBUGGING
-	res = curl(tracks_url[:tracks_url.index('&')], authToken = access_token)
-	res_json = json.loads(res)
-	tracks_json = res_json['items']
+	# print "TRACK URL => %s"%tracks_url	#DEBUGGING
+	while tracks_url is not None:
+		res_json = curl(tracks_url, authToken = accessToken)
+		tracks_json = res_json['items']
+		tracks_url = res_json['next']	#url for next "page" of tracks. Continue until null
+		# print len(tracks_json)	#DEBUGGING
 
-	''' Get Track Features'''
-	for i, track in enumerate(tracks_json):
-		if i > 10: break
-
-		audio_features_url = SPOTIFY_API_URL + SPOTIFY_API_ENDPOINTS['audio_features'] + track['track']['id']
+		''' Get Track Features'''
+		track_ids = ''
+		for i, track in enumerate(tracks_json):
+			# if i > 10: break
+			track_ids += track['track']['id'] + ','
+		track_ids = track_ids[:-1]	#remove last comma
+		audio_features_url = SPOTIFY_API_URL + SPOTIFY_API_ENDPOINTS['audio_features'] + track_ids
 		# print audio_features_url 	#DEBUGGING
-		res = curl(audio_features_url, authToken = access_token)
-		res_json = json.loads(res)
-		temp_feature_vector = [res_json['energy'], res_json['liveness'], res_json['tempo'], 
-							res_json['speechiness'], res_json['acousticness'], res_json['instrumentalness'], 
-							res_json['danceability'], res_json['loudness'], res_json['valence']]
-		train_data.append(temp_feature_vector)
+		res_json = curl(audio_features_url, authToken = accessToken)
+		# print res_json	#DEBUGGING
+		track_features = res_json['audio_features']
+		for features in track_features:
+			temp_feature_vector = [features['id'], features['energy'], features['liveness'], features['tempo'], 
+								features['speechiness'], features['acousticness'], features['instrumentalness'], 
+								features['danceability'], features['loudness'], features['valence']]
+			train_data.append(temp_feature_vector)
 
 	print "Number of training samples: %s"%len(train_data)
-	print train_data		
 
 def curl( url, data = None, authToken = None ):
 
@@ -96,13 +100,15 @@ def curl( url, data = None, authToken = None ):
 
 	response = urllib2.urlopen( req )
 	res = response.read()
-	return res
+	return json.loads(res)
 
 def get_token(code):
 	client_auth = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET)
 	post_data = {"grant_type": "authorization_code", "code": code, "redirect_uri": REDIRECT_URI}
 	response = requests.post("https://accounts.spotify.com/api/token", auth=client_auth, data=post_data)
 	token_json = response.json()
+	# expires_json = token_json["expires_in"]
+	# print "Token expires in %s seconds"%expires_json
 	return token_json["access_token"]
 
 def is_valid_state(state):
