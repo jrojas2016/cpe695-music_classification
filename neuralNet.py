@@ -56,16 +56,16 @@ class NeuralNet:
             InputValueOfNeurons[i]= trainSample[i]
         for j in range(0,self.num_neurons):
             temp=0
-                for k in range(0,self.num_inputs):
-                    temp+= InputValueOfNeurons[k] * hiddenLayer.weights[j][k]
+            for k in range(0,self.num_inputs):
+                temp+= InputValueOfNeurons[k] * hiddenLayer.weights[j][k]
             #weights[j]'s length should be num_inputs+1
             temp += hiddenLayer.weights[j][self.num_inputs]
             HiddenValueOfNeurons[j] = sigmoid(temp)
 
         for jj in range(0,self.num_outputs):
             temp=0
-                for kk in range(0,hiddenLayer.num_neurons):
-                    temp+= HiddenValueOfNeurons[jj]* outputLayer.weights[jj][kk]
+            for kk in range(0,hiddenLayer.num_neurons):
+                temp+= HiddenValueOfNeurons[jj]* outputLayer.weights[jj][kk]
             temp += outputLayer.weights[jj][hiddenLayer.num_neurons]
             OutputValueOfNeurons[jj]= sigmoid(temp)
         
