@@ -47,6 +47,30 @@ class NeuralNet:
 
 		Network Feed Forward:
 		'''
+    #Zhiyuan add
+        InputvalueOfNeurons = [0] * self.num_inputs
+        HiddenValueOfNeurons = [0] *  hiddenLayer.num_neurons
+        OutputValueOfNeurons = [0] * self.num_outputs
+        #assume only one hidden layer first
+        for i in range(0,self.num_inputs):
+            InputValueOfNeurons[i]= trainSample[i]
+        for j in range(0,self.num_neurons):
+            temp=0
+            for k in range(0,self.num_inputs):
+                temp+= InputValueOfNeurons[k] * hiddenLayer.weights[j][k]
+            #weights[j]'s length should be num_inputs+1
+            temp += hiddenLayer.weights[j][self.num_inputs]
+            HiddenValueOfNeurons[j] = sigmoid(temp)
+
+        for jj in range(0,self.num_outputs):
+            temp=0
+            for kk in range(0,hiddenLayer.num_neurons):
+                temp+= HiddenValueOfNeurons[jj]* outputLayer.weights[jj][kk]
+            temp += outputLayer.weights[jj][hiddenLayer.num_neurons]
+            OutputValueOfNeurons[jj]= sigmoid(temp)
+        
+        # Array  OutputValueOfNeurons is the result of feed forword
+    #Zhiyuan end
 		pass
 
 	def netbp(self, trainLabel):
@@ -67,7 +91,7 @@ class NeuralNet:
 			layer.updateWeights()
 
 def sigmoid(x):
-	return 1/(1 + math.exp(x))
+	return 1/(1 + math.exp(-x))
 
 def perceptron(x, threshold):
 	return 1 if x > threshold else -1
