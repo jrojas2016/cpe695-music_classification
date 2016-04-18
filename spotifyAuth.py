@@ -4,6 +4,8 @@ Authorize Spotify API:
 	client secret for project cpe695-music-classification.
 	API used to aquire the music dataset.
 
+	output -> [indieRock%, jazz%, trance%, pop%] *all four outputs are between 0 and 1
+
 Date: 04/04/2016
 
 Author(s): 
@@ -35,7 +37,7 @@ from optparse import OptionParser
 from flask import Flask, abort, request
 
 ''' VARIABLES '''
-train_data = []
+train_data = {}
 access_token = ''
 
 ''' CONSTANTS '''
@@ -47,10 +49,40 @@ CLIENT_SECRET = 'XXXXXXXXXX'
 
 #This URI can be set in the spotify developer console. Make it your localHost/callback add it and save it
 REDIRECT_URI = 'http://127.0.0.1:5000/spotify_callback'
+#Needed to successfully label the training data
+PLAYLIST_USERS = {
+					'0XUlpafP8eIlIWt3VHSd7q':'spotify', 
+					'05Hd48jdQIz3s8WRrvGnzf':'mejoresplaylistsspotify',
+					'6XChIaijnUBzPDrQOX02AJ':'spotify',
+					'570tVSLPdLnRU0z0bqd8Wk':'spotify',
+					'5iiAkAuvH8doELAEgrCO4U':'legacysweden',
+					'5O2ERf8kAYARVVdfCKZ9G7':'spotify',
+					'3ObJ6Qra3CkV0gNCRTtK0c':'knivgaffel',
+					'5bMgwxIN2fNPSn3jjvRfE8':'spotify',
+					'0ijttIJY7IL2Ez3zoMPxwC':'spotify',
+					'6y23fI1axTBfSSS1iVu2q0':'spotifybrazilian',
+					'7dvIeoskAWdAkfa0J8rmrM':'spotify'
+				}
+GENRE_PLAYLISTS = {
+					'0XUlpafP8eIlIWt3VHSd7q':[1, 0, 0, 0],
+					'05Hd48jdQIz3s8WRrvGnzf':[0, 1, 0, 0],
+					'6XChIaijnUBzPDrQOX02AJ':[0, 1, 0, 0],
+					'570tVSLPdLnRU0z0bqd8Wk':[0, 1, 0, 0],
+					'5iiAkAuvH8doELAEgrCO4U':[0, 1, 0, 0],
+					'5O2ERf8kAYARVVdfCKZ9G7':[0, 1, 0, 0],
+					'3ObJ6Qra3CkV0gNCRTtK0c':[0, 0, 1, 0],
+					'5bMgwxIN2fNPSn3jjvRfE8':[0, 0, 0, 1],
+					'0ijttIJY7IL2Ez3zoMPxwC':[0, 0, 0, 1],
+					'6y23fI1axTBfSSS1iVu2q0':[0, 0, 0, 1],
+					'7dvIeoskAWdAkfa0J8rmrM':[0, 0, 0, 1]
+				}
 SPOTIFY_PLAYLISTS = {'training':'2VB8ds8bjD78gVHRsCcMTl', 'testing':'6etBG7ccLcMhQb4nUud9UE'}
-SPOTIFY_API_ENDPOINTS = {'audio_features': 'v1/audio-features?ids=', 
-						'track': 'v1/tracks/%s', 
-						'playlists': 'v1/users/' + USER_ID + '/playlists/'}
+SPOTIFY_API_ENDPOINTS = {	
+							'audio_features': 'v1/audio-features?ids=', 
+							'track': 'v1/tracks/%s', 
+							'playlists': 'v1/users/' + USER_ID + '/playlists/',
+							'playlist_tracks': 'v1/users/%s/playlists/%s/tracks'
+						}
 
 ''' UTILITY FUNCTIONS'''
 def crawl_spotify_data(accessToken):
@@ -80,15 +112,56 @@ def crawl_spotify_data(accessToken):
 		res_json = curl(audio_features_url, authToken = accessToken)
 		# print res_json	#DEBUGGING
 		track_features = res_json['audio_features']
+		# print track_features	#DEBUGGING
 		for features in track_features:
-			temp_feature_vector = [features['id'], features['energy'], features['liveness'], features['tempo'], 
-								features['speechiness'], features['acousticness'], features['instrumentalness'], 
-								features['danceability'], features['loudness'], features['valence']]
-			train_data.append(temp_feature_vector)
+			if features is not None:
+				temp_feature_vector = [features['energy'], 
+										features['liveness'], features['tempo'], features['speechiness'], 
+										features['acousticness'], features['instrumentalness'], 
+										features['danceability'], features['loudness'], features['valence']]
+				train_data[features['id']] = temp_feature_vector
+			else:
+				pass
 
 	print "Number of training samples: %s"%len(train_data)
 
-def curl( url, data = None, authToken = None ):
+def label_spotify_data(accessToken):
+	checked_tracks = []
+	missing_tracks = []
+	genre_song_count = [0, 0, 0, 0]
+
+	for playlist_id, user in PLAYLIST_USERS.iteritems():
+		playlist_tracks_url = SPOTIFY_API_URL + SPOTIFY_API_ENDPOINTS['playlist_tracks']%(user, playlist_id)
+
+		while playlist_tracks_url is not None:
+			res_json = curl(playlist_tracks_url, authToken = accessToken)
+			tracks_json = res_json['items']		#list of track objects
+			playlist_tracks_url = res_json['next']	#url for next "page" of tracks. Continue until null
+			# print len(tracks_json)	#DEBUGGING
+
+			''' Get Track Features'''
+			for track in tracks_json:
+				track_id = track['track']['id']
+
+				try:
+					if track_id not in checked_tracks:
+						train_data[track_id].append(GENRE_PLAYLISTS[playlist_id])
+						genre_song_count[GENRE_PLAYLISTS[playlist_id].index(1)] += 1
+				except KeyError:
+					missing_tracks.append(track_id)
+
+				checked_tracks.append(track_id)
+
+	print "Number of missing tracks = %s"%len(missing_tracks)
+	print "Genre Count:\nIndie Rock = %s"%genre_song_count[0]
+	print "Jazz = %s"%genre_song_count[1]
+	print "Trance = %s"%genre_song_count[2]
+	print "Pop = %s"%genre_song_count[3]
+	print "Labeled sample: ", train_data['43BLqP9em5cm0F8CWeDTfz']
+	print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+	# print missing_tracks
+
+def curl(url, data = None, authToken = None):
 
 	if data is not None:
 		req = urllib2.Request( url, data )
@@ -151,6 +224,7 @@ def spotify_callback():
 	# We'll change this next line in just a moment
 	access_token = get_token(code)
 	crawl_spotify_data(access_token)
+	label_spotify_data(access_token)
 	return "got an access token! %s" % access_token
 
 def runAuth():
