@@ -50,19 +50,7 @@ CLIENT_SECRET = 'XXXXXXXXXX'
 #This URI can be set in the spotify developer console. Make it your localHost/callback add it and save it
 REDIRECT_URI = 'http://127.0.0.1:5000/spotify_callback'
 #Needed to successfully label the training data
-PLAYLIST_USERS = {
-					'0XUlpafP8eIlIWt3VHSd7q':'spotify', 
-					'05Hd48jdQIz3s8WRrvGnzf':'mejoresplaylistsspotify',
-					'6XChIaijnUBzPDrQOX02AJ':'spotify',
-					'570tVSLPdLnRU0z0bqd8Wk':'spotify',
-					'5iiAkAuvH8doELAEgrCO4U':'legacysweden',
-					'5O2ERf8kAYARVVdfCKZ9G7':'spotify',
-					'3ObJ6Qra3CkV0gNCRTtK0c':'knivgaffel',
-					'5bMgwxIN2fNPSn3jjvRfE8':'spotify',
-					'0ijttIJY7IL2Ez3zoMPxwC':'spotify',
-					'6y23fI1axTBfSSS1iVu2q0':'spotifybrazilian',
-					'7dvIeoskAWdAkfa0J8rmrM':'spotify'
-				}
+SPOTIFY_PLAYLISTS = {'training':'2VB8ds8bjD78gVHRsCcMTl', 'testing':'6etBG7ccLcMhQb4nUud9UE'}
 GENRE_PLAYLISTS = {
 					'0XUlpafP8eIlIWt3VHSd7q':[1, 0, 0, 0],
 					'05Hd48jdQIz3s8WRrvGnzf':[0, 1, 0, 0],
@@ -76,7 +64,19 @@ GENRE_PLAYLISTS = {
 					'6y23fI1axTBfSSS1iVu2q0':[0, 0, 0, 1],
 					'7dvIeoskAWdAkfa0J8rmrM':[0, 0, 0, 1]
 				}
-SPOTIFY_PLAYLISTS = {'training':'2VB8ds8bjD78gVHRsCcMTl', 'testing':'6etBG7ccLcMhQb4nUud9UE'}
+PLAYLIST_USERS = {
+					'0XUlpafP8eIlIWt3VHSd7q':'spotify', 
+					'05Hd48jdQIz3s8WRrvGnzf':'mejoresplaylistsspotify',
+					'6XChIaijnUBzPDrQOX02AJ':'spotify',
+					'570tVSLPdLnRU0z0bqd8Wk':'spotify',
+					'5iiAkAuvH8doELAEgrCO4U':'legacysweden',
+					'5O2ERf8kAYARVVdfCKZ9G7':'spotify',
+					'3ObJ6Qra3CkV0gNCRTtK0c':'knivgaffel',
+					'5bMgwxIN2fNPSn3jjvRfE8':'spotify',
+					'0ijttIJY7IL2Ez3zoMPxwC':'spotify',
+					'6y23fI1axTBfSSS1iVu2q0':'spotifybrazilian',
+					'7dvIeoskAWdAkfa0J8rmrM':'spotify',
+				}
 SPOTIFY_API_ENDPOINTS = {	
 							'audio_features': 'v1/audio-features?ids=', 
 							'track': 'v1/tracks/%s', 
