@@ -26,10 +26,11 @@ class NeuralLayer:
 			self.weights = weights
 		else:
 			#Initialize weights at random if none provided
-			self.weights = []
-			for i in xrange(self.num_neurons):
-				neuron_weights = [ random.random() for j in xrange(self.num_inputs) ]
-				self.weights.append(neuron_weights)
+			self.weights = [ [ random.random() ] * self.num_inputs ] * self.num_neurons
+			#Which method is better?
+			# for i in xrange(self.num_neurons):
+			# 	neuron_weights = [ random.random() for j in xrange(self.num_inputs) ]
+			# 	self.weights.append(neuron_weights)
 
 	def updateWeights(self):
 		'''
