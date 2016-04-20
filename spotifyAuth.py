@@ -37,6 +37,7 @@ from optparse import OptionParser
 from flask import Flask, abort, request
 
 ''' VARIABLES '''
+test_data = {}
 train_data = {}
 access_token = ''
 
@@ -159,7 +160,7 @@ def label_spotify_data(accessToken):
 	print "Pop = %s"%genre_song_count[3]
 	print "Labeled sample: ", train_data['43BLqP9em5cm0F8CWeDTfz']
 	print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-	# print missing_tracks
+	# print missing_tracks	#DEBUGGING
 
 def curl(url, data = None, authToken = None):
 
@@ -226,6 +227,9 @@ def spotify_callback():
 	crawl_spotify_data(access_token)
 	label_spotify_data(access_token)
 	return "got an access token! %s" % access_token
+
+def getTrainData():
+	return train_data
 
 def runAuth():
 	app.run(debug=True, port=5000)

@@ -15,10 +15,14 @@ class NeuralNet:
 	Doc string
 	'''
 
-	def __init__(self, numInputs = 9, layers = [10], numOutputs = 4, weights = None):
+	def __init__(self, numInputs = 9, layers = [10], numOutputs = 4, weights = None, learningRate, momentum):
 		'''
 		Doc string
 		'''
+
+		''' Learning Parameters '''
+		self.learningRate = learningRate
+		self.momentum = momentum
 
 		''' Neurons '''
 		self.num_inputs = numInputs
@@ -34,9 +38,9 @@ class NeuralNet:
 		assert isinstance(layers, list), "layers argument is a list of the number of neurons per layer"
 		for hidden_layer_id, hidden_layer in enumerate(layers):
 			if hidden_layer_id == 0:
-				self.layers.append( nl.NeuralLayer(self.num_inputs, hidden_layer) )
+				self.layers.append( nl.NeuralLayer(self.num_inputs, hidden_layer, learningRate = self.learningRate, momentum = self.momentum) )
 			else:
-				self.layers.append( nl.NeuralLayer(layers[hidden_layer_id - 1].num_neurons, hidden_layer) )
+				self.layers.append( nl.NeuralLayer(layers[hidden_layer_id - 1].num_neurons, hidden_layer, learningRate = self.learningRate, momentum = self.momentum) )
 
 	def printArchitecture():
 		print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -49,14 +53,14 @@ class NeuralNet:
 		print "Number of Output Neurons: ", self.num_outputs 
 		print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
-	def train(self, trainSamples, labels, learningRate, num_epoch = 10):
+	def train(self, trainSamples, labels, num_epoch = 10):
 		for epoch in num_epoch:
 			for sample_id, sample in enumerate(trainSamples):
 				#The arguments for netff and netbp where arbitrarily placed
 				#feel free to modify!
 				self.netff(sample)
 				self.netbp(labels[sample_id])
-				self.updateWeights(learningRate)
+				self.updateWeights()
 
 	def test(self, testSamples, labels = None):
 		num_correct_classifications = 0
@@ -129,13 +133,13 @@ class NeuralNet:
 	#Zhiyuan end
 		pass
 
-	def updateWeights(self, learningRate):
+	def updateWeights(self):
 		'''
 		Update Weights for all layers of network
 		'''
 		for layer in self.layers:
-			layer.updateWeights(learningRate)
-		self.output_layer.updateWeights(learningRate)
+			layer.updateWeights()
+		self.output_layer.updateWeights()
 
 def sigmoid(x):
 	return 1/(1 + math.exp(-x))

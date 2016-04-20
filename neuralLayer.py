@@ -14,9 +14,11 @@ class NeuralLayer:
 	Doc String
 	'''
 
-	def __init__(self, numInputs, numNeurons, weights = None):
+	def __init__(self, numInputs, numNeurons, weights = None, learningRate, momentum):
 		self.num_inputs = numInputs
 		self.num_neurons = numNeurons
+		self.learningRate = learningRate
+		self.momentum = momentum
 		self.neuron_outputs = [ 0 for neuron in xrange(numNeurons) ]
 		self.neuron_delta = [ 0 for neuron in xrange(numNeurons) ]
 		self.neuron_momentum = [ [0] * self.num_inputs ] * self.num_neurons
@@ -33,7 +35,7 @@ class NeuralLayer:
 				neuron_weights = [ random.uniform(-1, 1) for j in xrange(self.num_inputs) ]
 				self.weights.append(neuron_weights)
 
-	def updateWeights(self, learningRate):
+	def updateWeights(self):
 		'''
 		Author(s):
 			Vinay
@@ -42,12 +44,11 @@ class NeuralLayer:
 		Update weights for layer inputs with neuron weights, learning rate, and sigma values
 		'''
     #Zhiyuan add
-        momentum = 0.1
         for i in range(0,self.num_neurons):
             for j in range(0,self.num_inputs):
-                change=learningRate * self.neuron_delta[i] * self.neuron_sigmas[i]
-                self.weights[i][j]+= change+ momentum * self.momentum[i][j]
-                self.momentum[i][j]= change
+                change=self.learningRate * self.neuron_delta[i] * self.neuron_sigmas[i]
+                self.weights[i][j]+= change+ self.momentum * self.neuron_momentum[i][j]
+                self.neuron_momentum[i][j]= change
         
     #Zhiyuan end
 		pass
