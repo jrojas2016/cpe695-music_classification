@@ -18,7 +18,7 @@ class NeuralLayer:
 		self.num_inputs = numInputs
 		self.num_neurons = numNeurons
 		self.neuron_outputs = [ 0 for neuron in xrange(numNeurons) ]
-		self.neuron_sigmas = [ 0 for neuron in xrange(numNeurons) ]
+		self.neuron_delta = [ 0 for neuron in xrange(numNeurons) ]
 
 		if weights not None:
 			assert len(weights) == self.numNeurons, 'The dimensions of the weights do not match with the number of neurons!'
@@ -26,11 +26,11 @@ class NeuralLayer:
 			self.weights = weights
 		else:
 			#Initialize weights at random if none provided
-			self.weights = [ [ random.random() ] * self.num_inputs ] * self.num_neurons
+			# self.weights = [ [ random.uniform(-1, 1) ] * self.num_inputs ] * self.num_neurons
 			#Which method is better?
-			# for i in xrange(self.num_neurons):
-			# 	neuron_weights = [ random.random() for j in xrange(self.num_inputs) ]
-			# 	self.weights.append(neuron_weights)
+			for i in xrange(self.num_neurons):
+				neuron_weights = [ random.uniform(-1, 1) for j in xrange(self.num_inputs) ]
+				self.weights.append(neuron_weights)
 
 	def updateWeights(self):
 		'''

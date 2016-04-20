@@ -49,13 +49,14 @@ class NeuralNet:
 		print "Number of Output Neurons: ", self.num_outputs 
 		print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
-	def train(self, trainSamples, labels, num_epoch = 10):
+	def train(self, trainSamples, labels, learningRate, num_epoch = 10):
 		for epoch in num_epoch:
 			for sample_id, sample in enumerate(trainSamples):
 				#The arguments for netff and netbp where arbitrarily placed
 				#feel free to modify!
 				self.netff(sample)
 				self.netbp(labels[sample_id])
+				self.updateWeights(learningRate)
 
 	def test(self, testSamples, labels = None):
 		num_correct_classifications = 0
@@ -125,6 +126,7 @@ class NeuralNet:
 		'''
 		for layer in self.layers:
 			layer.updateWeights()
+		self.output_layer.updateWeights()
 
 def sigmoid(x):
 	return 1/(1 + math.exp(-x))
