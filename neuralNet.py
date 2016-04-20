@@ -84,26 +84,25 @@ class NeuralNet:
 		Network Feed Forward:
 		'''
     #Zhiyuan add
-        InputvalueOfNeurons = [0] * self.num_inputs
-        HiddenValueOfNeurons = [0] *  hiddenLayer.num_neurons
-        OutputValueOfNeurons = [0] * self.num_outputs
         #assume only one hidden layer first
-        for i in range(0,self.num_inputs):
-            InputValueOfNeurons[i]= trainSample[i]
-        for j in range(0,self.num_neurons):
+        for i in range(0,inputLayer.num_neurons):
+            inputLayer.neuron_sigmas[i]= trainSample[i]
+        for j in range(0,hiddenLayer.num_neurons):
             temp=0
-            for k in range(0,self.num_inputs):
-                temp+= InputValueOfNeurons[k] * hiddenLayer.weights[j][k]
+            for k in range(0,inputLayer.num_neurons):
+                temp+= inputLayer.neuron_sigmas[k] * hiddenLayer.weights[j][k]
             #weights[j]'s length should be num_inputs+1
-            temp += hiddenLayer.weights[j][self.num_inputs]	#out of range?
-            HiddenValueOfNeurons[j] = sigmoid(temp)
 
-        for jj in range(0,self.num_outputs):
+            temp += hiddenLayer.weights[j][self.num_inputs] # I add one more when initialize the weight
+            hiddenLayer.neuron_sigmas[j] = sigmoid(temp)
+
+
+        for jj in range(0,outputLayer.num_neurons):
             temp=0
             for kk in range(0,hiddenLayer.num_neurons):
-                temp+= HiddenValueOfNeurons[jj]* outputLayer.weights[jj][kk]
+                temp+= hiddenLayer.neuron_sigmas[jj]* outputLayer.weights[jj][kk]
             temp += outputLayer.weights[jj][hiddenLayer.num_neurons]
-            OutputValueOfNeurons[jj]= sigmoid(temp)
+            outputLayer.neuron_sigmas[jj]= sigmoid(temp)
         
         # Array  OutputValueOfNeurons is the result of feed forword
     #Zhiyuan end
@@ -117,6 +116,16 @@ class NeuralNet:
 
 		Network Back Propagate
 		'''
+    #Zhiyuan add
+        for i in (0,self.num_outputs):
+            outputLayer.neuron_delta[i]= outputLayer.neuron_sigmas[i] *(1- outputLayer.neuron_sigmas[i])* (trainLabel[i]-outputLayer.neuron_sigmas[i])
+        for j in range(0,hiddenLayer.num_neurons):
+            temp=0
+            for k in range(0,outputLayer.num_neurons):
+                temp+= outputLayer.weights[k][j] * outputLayer.neuron_delta[k]
+            hiddenLayer.neuron_delta[j]=  hiddenLayer.neuron_sigmas[j] * (1 -  hiddenLayer.neuron_sigmas[j]) * temp
+        updateWeights()
+    #Zhiyuan end
 		pass
 
 	def updateWeights(self):
@@ -144,5 +153,29 @@ def debug():
 	print "Script to test Neural Net class"
 
 if __name__ == '__main__':
+#Zhiyuan add
+    dataDir='/xxx/xxxx/xxx/'
+    train_data=dataDir + 'train.csv'
+    test_data=dataDir+ 'test.csv'
+    #output_file= dataDir + 'result.csv'
+    fTest = open (test_data,'r')
+    fTrain = open(train_data,'r')
+    #fOut = open(output_file, 'w')
+    #no idea of the structure of data
+    for line in fTrain:
+        Traindata=....
+        Trainlabels=....
+    for line in fTest:
+        #no idea of the structure of data
+        Testdata=....
+        #TestLabels=...
+    nn = NeuralNet(9,10,4)
+    nn.train(Traindata,Trainlabels,10)
+    nn.test(Testdata)
+
+    fTest.close()
+    fTrain.close()
+    #fOut.close()
+#Zhiyuan end
 	debug()
 
