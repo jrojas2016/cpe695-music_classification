@@ -18,11 +18,20 @@ class NeuralLayer:
 		self.num_inputs = numInputs
 		self.num_neurons = numNeurons
 		self.neuron_outputs = [ 0 for neuron in xrange(numNeurons) ]
+<<<<<<< HEAD
 		self.neuron_delta = [ 0 for neuron in xrange(numNeurons) ]
 
+=======
+		self.neuron_sigmas = [ 0 for neuron in xrange(numNeurons) ]
+        self.neuron_delta = [ 0 for neuron in xrange(numNeurons) ]
+        assert len(weights_momentum)==self.num_neurons
+        assert len(weights[0]_momentum) == (self.num_inputs +1)
+        self.weights_momentum=weights_momentum
+        
+>>>>>>> 2d32b0ae57ca395ca3a0c7727ee39d2486db2931
 		if weights not None:
-			assert len(weights) == self.numNeurons, 'The dimensions of the weights do not match with the number of neurons!'
-			assert len(weights[0]) == self.numInputs, 'The dimensions of the weights do not match with the number of inputs!'
+			assert len(weights) == self.num_neurons, 'The dimensions of the weights do not match with the number of neurons!'
+			assert len(weights[0]) == (self.num_inputs+1) , 'The dimensions of the weights do not match with the number of inputs!'
 			self.weights = weights
 		else:
 			#Initialize weights at random if none provided
@@ -40,6 +49,16 @@ class NeuralLayer:
 
 		Update weights for layer inputs with neuron weights, learning rate, and sigma values
 		'''
+    #Zhiyuan add
+        rate = 0.5
+        momentum = 0.1
+        for i in range(0,self.num_neurons):
+            for j in range(0,self.num_inputs):
+                change=rate * self.neuron_delta[i] * self.neuron_sigmas[i]
+                self.weights[i][j]+= change+ momentum * self.momentum[i][j]
+                self.momentum[i][j]= change
+        
+    #Zhiyuan end
 		pass
 
 def debug():
