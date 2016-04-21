@@ -90,28 +90,34 @@ class NeuralNet:
 		'''
 	#Zhiyuan add
 		#assume only one hidden layer first
-		for i in range(0,inputLayer.num_neurons):
-			inputLayer.neuron_sigmas[i]= trainSample[i]
-		for j in range(0,hiddenLayer.num_neurons):
-			temp=0
-			for k in range(0,inputLayer.num_neurons):
-				temp+= inputLayer.neuron_sigmas[k] * hiddenLayer.weights[j][k]
+		for i in range(0,self.num_inputs):
+			self.input_values[i]= Traindata[i]
+        for hidden_layer_id, hidden_layer in enumerate(layers):
+            if hidden_layer_id == 0:
+                for j in range(0,hidden_layer.num_neurons):
+                    temp=0
+                    for k in range(0,self.num_inputs):
+                        temp+= self.input_values[k] * hidden_layer.weights[j][k]
 			#weights[j]'s length should be num_inputs+1
-
-			temp += hiddenLayer.weights[j][self.num_inputs] # I add one more when initialize the weight
-			hiddenLayer.neuron_sigmas[j] = sigmoid(temp)
-
-
-		for jj in range(0,outputLayer.num_neurons):
-			temp=0
-			for kk in range(0,hiddenLayer.num_neurons):
-				temp+= hiddenLayer.neuron_sigmas[jj]* outputLayer.weights[jj][kk]
-			temp += outputLayer.weights[jj][hiddenLayer.num_neurons]
-			outputLayer.neuron_sigmas[jj]= sigmoid(temp)
+                    temp += hidden_layer.weights[j][self.num_inputs] # I add one more when initialize the weight
+                    hidden_layer.neuron_outputs[j] = sigmoid(temp)
+            else:
+                for j in range(0,hidden_layer.num_neurons):
+                    temp=0
+                    for k in range(0,layers[hidden_layer_id -1].num_neurons):
+                        temp+= layers[hidden_layer_id -1].neuron_outputs[k]* hidden_layer.weights[j][k]
+                    temp += hidden_layer.weights[j][hidden_layer.num_neurons]
+                    hidden_layer.neuron_outputs[j]= sigmoid(temp)
+        for j in range(0,self.num_outputs):
+            temp=0
+            for k in range(0,layers[len(layers)-1].num_neurons):
+                temp+= layers[len(layers)-1].neuron_outputs[k]* output_layer.weights[j][k]
+            temp += output_layer.weights[j][layers[len(layers)-1].num_neurons]
+            output_layer.neuron_outputs[j]= sigmoid(temp)
 		
 		# Array  OutputValueOfNeurons is the result of feed forword
 	#Zhiyuan end
-		pass	#No need to keep this here
+
 
 	def netbp(self, trainLabel):
 		'''
@@ -123,23 +129,43 @@ class NeuralNet:
 		'''
 	#Zhiyuan add
 		for i in (0,self.num_outputs):
-			outputLayer.neuron_delta[i]= outputLayer.neuron_sigmas[i] *(1- outputLayer.neuron_sigmas[i])* (trainLabel[i]-outputLayer.neuron_sigmas[i])
-		for j in range(0,hiddenLayer.num_neurons):
-			temp=0
-			for k in range(0,outputLayer.num_neurons):
-				temp+= outputLayer.weights[k][j] * outputLayer.neuron_delta[k]
-			hiddenLayer.neuron_delta[j]=  hiddenLayer.neuron_sigmas[j] * (1 -  hiddenLayer.neuron_sigmas[j]) * temp
-		updateWeights()
+			output_layer.neuron_delta[i]= output_layer.neuron_outputs[i] *(1- output_layer.neuron_outputs[i])* (trainLabel[i]-output_layer.neuron_outputs[i])
+        for j in range(0,layers[len(layers)-1].num_neurons):
+            temp=0
+            for k in range(0,output_layer.num_neurons):
+                temp+= output_layer.weights[k][j] * output_layer.neuron_delta[k]
+            layers[len(layers)-1].neuron_delta[j]=  layers[len(layers)-1].neuron_outputs[j] * (1 -  layers[len(layers)-1].neuron_outputs[j]) * temp
+
+        for i in xrange(len(layers)-1, 0):
+            for j in range(0,layers[i].num_neurons):
+                temp=0
+                for k in range(0,layers[i+1].num_neurons):
+                    temp+= layers[i+1].weights[k][j] * layers[i+1].neuron_delta[k]
+                layers[i].neuron_delta[j]=  layers[i].neuron_outputs[j] * (1 -  layers[i].neuron_outputs[j]) * temp
 	#Zhiyuan end
-		pass
 
 	def updateWeights(self):
 		'''
 		Update Weights for all layers of network
 		'''
-		for layer in self.layers:
-			layer.updateWeights()
-		self.output_layer.updateWeights()
+        for hidden_layer_id, hidden_layer in enumerate(layers):
+            if hidden_layer_id == 0:
+                for i in range(0,hidden_layer.num_neurons):
+                    for j in range(0,self.num_inputs):
+                        change=hidden_layer.learningRate * hidden_layer.neuron_delta[i] * self.input_values[j]
+                        hidden_layer.weights[i][j]+= change+ hidden_layer.momentum * hidden_layer.neuron_momentum[i][j]
+                        hidden_layer.neuron_momentum[i][j]= change
+            else:
+                for i in range(0,self.num_neurons):
+                    for j in range(0,self.num_inputs):
+                        change=hidden_layer.learningRate * hidden_layer.neuron_delta[i] * layers[hidden_layer_id -1].neuron_outputs[j]
+                        hidden_layer.weights[i][j]+= change+ hidden_layer.momentum * hidden_layer.neuron_momentum[i][j]
+                        hidden_layer.neuron_momentum[i][j]= change
+        for i in range(0,self.num_outputs):
+            for j in range(0,layers[len(layers)-1].num_neurons):
+                change=self.learningRate * self.output_layer.neuron_delta[i] * layers[len(layers)-1].neuron_outputs[j]
+                self.output_layer.weights[i][j]+= change+ self.momentum * self.output_layer.neuron_momentum[i][j]
+                self.output_layer.neuron_momentum[i][j]= change
 
 def sigmoid(x):
 	return 1/(1 + math.exp(-x))
