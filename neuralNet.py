@@ -42,7 +42,7 @@ class NeuralNet:
 			else:
 				self.layers.append( nl.NeuralLayer(layers[hidden_layer_id - 1].num_neurons, hidden_layer, learningRate = self.learningRate, momentum = self.momentum) )
 
-	def printArchitecture():
+	def printArchitecture(self):
 		print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 		print "Number of Input Neurons: ", self.num_inputs
 		print "Number of Hidden Layers: ", self.num_hidden_layers
