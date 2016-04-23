@@ -1,4 +1,4 @@
- '''
+'''
 Neural Network Layer Class:
 	Description
 
@@ -14,11 +14,7 @@ class NeuralLayer:
 	Doc String
 	'''
 
-	def __init__(self, numInputs, numNeurons, weights = None, learningRate, momentum):
-		
-		''' Learning Parameters '''
-		self.momentum = momentum
-		self.learningRate = learningRate
+	def __init__(self, numInputs, numNeurons, weights = None):
 
 		''' Layer Architecture '''
 		self.num_inputs = numInputs
@@ -35,18 +31,8 @@ class NeuralLayer:
 			self.weights = weights
 		else:
 			#Initialize weights at random if none provided
-			self.weights = [ [ random.uniform(-1, 1) ] * self.num_inputs ] * self.num_neurons
-
-	def updateWeights(self):
-		'''
-		Author(s):
-			Vinay
-			Zhiyuan
-
-		Update weights for layer inputs with neuron weights, learning rate, and sigma values
-		'''
- 
-		pass
+			#Plus one included to account for constant weight term
+			self.weights = [ [ random.uniform(-1, 1) ] * (self.num_inputs + 1) ] * self.num_neurons
 
 def debug():
 	print "Script to test Neural Layer class"
