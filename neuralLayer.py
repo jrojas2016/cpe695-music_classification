@@ -15,11 +15,17 @@ class NeuralLayer:
 	'''
 
 	def __init__(self, numInputs, numNeurons, weights = None, learningRate, momentum):
+		
+		''' Learning Parameters '''
+		self.momentum = momentum
+		self.learningRate = learningRate
+
+		''' Layer Architecture '''
 		self.num_inputs = numInputs
 		self.num_neurons = numNeurons
-		self.learningRate = learningRate
-		self.momentum = momentum
 		self.neuron_outputs = [ 0 for neuron in xrange(numNeurons) ]
+
+		''' Back Propagation Parameters '''
 		self.neuron_delta = [ 0 for neuron in xrange(numNeurons) ]
 		self.neuron_momentum = [ [0] * self.num_inputs ] * self.num_neurons
         
@@ -29,11 +35,7 @@ class NeuralLayer:
 			self.weights = weights
 		else:
 			#Initialize weights at random if none provided
-			# self.weights = [ [ random.uniform(-1, 1) ] * self.num_inputs ] * self.num_neurons
-			#Which method is better?
-			for i in xrange(self.num_neurons):
-				neuron_weights = [ random.uniform(-1, 1) for j in xrange(self.num_inputs) ]
-				self.weights.append(neuron_weights)
+			self.weights = [ [ random.uniform(-1, 1) ] * self.num_inputs ] * self.num_neurons
 
 	def updateWeights(self):
 		'''
