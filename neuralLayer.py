@@ -1,4 +1,4 @@
-'''
+ '''
 Neural Network Layer Class:
 	Description
 
@@ -45,14 +45,7 @@ class NeuralLayer:
 
 		Update weights for layer inputs with neuron weights, learning rate, and sigma values
 		'''
-    #Zhiyuan add
-        for i in range(0,self.num_neurons):
-            for j in range(0,self.num_inputs):
-                change=self.learningRate * self.neuron_delta[i] * self.neuron_sigmas[i]
-                self.weights[i][j]+= change+ self.momentum * self.neuron_momentum[i][j]
-                self.neuron_momentum[i][j]= change
-        
-    #Zhiyuan end
+ 
 		pass
 
 def debug():
