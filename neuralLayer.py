@@ -23,9 +23,9 @@ class NeuralLayer:
 
 		''' Back Propagation Parameters '''
 		self.neuron_delta = [ 0 for neuron in xrange(numNeurons) ]
-		self.neuron_momentum = [ [0] * self.num_inputs ] * self.num_neurons
+		self.neuron_momentum = [ [0] * (self.num_inputs+1) ] * self.num_neurons
         
-		if weights not None:
+		if weights is not None:
 			assert len(weights) == self.num_neurons, 'The dimensions of the weights do not match with the number of neurons!'
 			assert len(weights[0]) == (self.num_inputs+1) , 'The dimensions of the weights do not match with the number of inputs!'
 			self.weights = weights

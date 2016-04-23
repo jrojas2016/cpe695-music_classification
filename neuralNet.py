@@ -8,6 +8,7 @@ Author(s):
 	Jorge Rojas
 '''
 import math
+import random
 import neuralLayer as nl
 
 class NeuralNet:
@@ -15,7 +16,7 @@ class NeuralNet:
 	Doc string
 	'''
 
-	def __init__(self, numInputs = 9, layers = [10], numOutputs = 4, weights = None, learningRate, momentum):
+	def __init__(self, numInputs = 9, layers = [10], numOutputs = 4, weights = None, learningRate = 0.1, momentum = 0.01):
 		'''
 		Doc string
 		'''
@@ -54,7 +55,7 @@ class NeuralNet:
 		print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
 	def train(self, trainSamples, labels, num_epoch = 10):
-		for epoch in num_epoch:
+		for epoch in xrange(0, num_epoch):
 			for sample_id, sample in enumerate(trainSamples):
 				#The arguments for netff and netbp where arbitrarily placed
 				#feel free to modify!
@@ -68,12 +69,12 @@ class NeuralNet:
 
 		if labels is None:
 			for sample in testSamples:
-				classification = netff(sample)
+				classification = self.netff(sample)
 				print classification
 		else:
 			#Calculate accuracy if labels present
 			for sample_id, sample in enumerate(testSamples):
-				classification = netff(sample)	#netff() needs to return network output
+				classification = self.netff(sample)	#netff() needs to return network output
 				if validateClassification(classification, labels[sample_id]):
 					num_correct_classifications += 1
 				print "Sample Label: ", labels[sample_id], " => Classification: ", classification
@@ -110,10 +111,11 @@ class NeuralNet:
 		for j in range(0,self.num_outputs):
 			temp=0
 			for k in range(0,self.layers[-1].num_neurons):
-				temp+= self.layers[-1].neuron_outputs[k]* output_layer.weights[j][k]
-			temp += output_layer.weights[j][self.layers[-1].num_neurons]
-			output_layer.neuron_outputs[j]= sigmoid(temp)
+				temp+= self.layers[-1].neuron_outputs[k]* self.output_layer.weights[j][k]
+			temp += self.output_layer.weights[j][self.layers[-1].num_neurons]
+			self.output_layer.neuron_outputs[j]= sigmoid(temp)
 		
+		return self.output_layer.neuron_outputs
 		# Array  OutputValueOfNeurons is the result of feed forword
 	#Zhiyuan end
 
@@ -127,18 +129,18 @@ class NeuralNet:
 		Network Back Propagate
 		'''
 	#Zhiyuan add
-		for i in (0,self.num_outputs):
-			output_layer.neuron_delta[i]= output_layer.neuron_outputs[i] *(1- output_layer.neuron_outputs[i])* (trainLabel[i]-output_layer.neuron_outputs[i])
+		for i in range(0,self.num_outputs):
+			self.output_layer.neuron_delta[i]= self.output_layer.neuron_outputs[i] *(1- self.output_layer.neuron_outputs[i])* (trainLabel[i]- self.output_layer.neuron_outputs[i])
 		for j in range(0,self.layers[-1].num_neurons):
 			temp=0
-			for k in range(0,output_layer.num_neurons):
-				temp+= output_layer.weights[k][j] * output_layer.neuron_delta[k]
+			for k in range(0,self.output_layer.num_neurons):
+				temp+= self.output_layer.weights[k][j] * self.output_layer.neuron_delta[k]
 			self.layers[-1].neuron_delta[j]=  self.layers[-1].neuron_outputs[j] * (1 -  self.layers[-1].neuron_outputs[j]) * temp
 
 		for i in xrange(0,self.num_hidden_layers -1):
 			for j in range(0,self.layers[self.num_hidden_layers - 2 - i].num_neurons):
 				temp=0
-				for k in range(0,layers[self.num_hidden_layers - 1 - i].num_neurons):
+				for k in range(0,self.layers[self.num_hidden_layers - 1 - i].num_neurons):
 					temp+= self.layers[self.num_hidden_layers - 1 - i].weights[k][j] * self.layers[self.num_hidden_layers - 1 - i].neuron_delta[k]
 				self.layers[self.num_hidden_layers - 2 - i].neuron_delta[j]=  self.layers[self.num_hidden_layers - 2 - i].neuron_outputs[j] * (1 -  self.layers[self.num_hidden_layers - 2 - i].neuron_outputs[j]) * temp
 	#Zhiyuan end
@@ -177,6 +179,7 @@ def perceptron(x, threshold):
 
 def validateClassification(classification, label):
 	#Index with the greatest value would be the classification of the sample
+	print "classification: ", classification
 	classification_index = classification.index( max(classification) )
 	if label[classification_index] == 1:
 		return True
@@ -184,6 +187,28 @@ def validateClassification(classification, label):
 		return False
 
 def debug():
+	#Jorge Test
+	# trainData = []
+	# labels = []
+	# for sample_num in xrange(0, 10):
+	# 	feature_vector = []
+	# 	for feature_num in xrange(0, 9):
+	# 		feature_vector.append( random.uniform(0, 1) )
+	# 	trainData.append( feature_vector )
+	# 	label = [0, 0, 0, 0]
+	# 	label_index = random.randint(0,3)
+	# 	label[label_index] = 1
+	# 	labels.append( label )
+	# # print trainData 	#DEBUGGING
+	# # print labels	#DEBUGGING
+
+	# nn = NeuralNet(learningRate = 0.9, momentum = 0.1)
+	# nn.printArchitecture()
+	# nn.train(trainData, labels, 100)
+
+	# nn.test(trainData, labels)
+
+	#Zhiyuan Test
 	print "Script to test Neural Net class"
 	#Zhiyuan add
 	dataDir='/xxx/xxxx/xxx/'
@@ -208,7 +233,7 @@ def debug():
 	fTest.close()
 	fTrain.close()
 	#fOut.close()
-	#Zhiyuan end
+	# #Zhiyuan end
 
 if __name__ == '__main__':
 	debug()
