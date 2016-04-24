@@ -8,6 +8,7 @@ Author(s):
 	Jorge Rojas
 '''
 import math
+import xlrd
 import random
 import neuralLayer as nl
 
@@ -56,12 +57,17 @@ class NeuralNet:
 
 	def train(self, trainSamples, labels, num_epoch = 10):
 		for epoch in xrange(0, num_epoch):
+			error=0
 			for sample_id, sample in enumerate(trainSamples):
 				#The arguments for netff and netbp where arbitrarily placed
 				#feel free to modify!
-				self.netff(sample)
+				outV=self.netff(sample)
+				# print outV
+				for i in xrange(0,len(outV)):
+					error+= 0.5*(outV[i]-labels[sample_id][i])*(outV[i]-labels[sample_id][i])
 				self.netbp(labels[sample_id])
 				self.updateWeights()
+			print "error is %f when epoch is %d" %(error,epoch+1) 
 
 	def test(self, testSamples, labels = None):
 		num_correct_classifications = 0
@@ -77,7 +83,7 @@ class NeuralNet:
 				classification = self.netff(sample)	#netff() needs to return network output
 				if validateClassification(classification, labels[sample_id]):
 					num_correct_classifications += 1
-				print "Sample Label: ", labels[sample_id], " => Classification: ", classification
+				# print "Sample Label: ", labels[sample_id], " => Classification: ", classification
 
 			print "Neural Network Accuracy % = ", ( num_correct_classifications/float(total_num_samples) )*100
 
@@ -100,6 +106,7 @@ class NeuralNet:
 						temp+= self.input_values[k] * hidden_layer.weights[j][k]
 			#weights[j]'s length should be num_inputs+1
 					temp += hidden_layer.weights[j][self.num_inputs] # I add one more when initialize the weight
+					# print temp
 					hidden_layer.neuron_outputs[j] = sigmoid(temp)
 			else:
 				for j in range(0,hidden_layer.num_neurons):
@@ -114,7 +121,6 @@ class NeuralNet:
 				temp+= self.layers[-1].neuron_outputs[k]* self.output_layer.weights[j][k]
 			temp += self.output_layer.weights[j][self.layers[-1].num_neurons]
 			self.output_layer.neuron_outputs[j]= sigmoid(temp)
-		
 		return self.output_layer.neuron_outputs
 		# Array  OutputValueOfNeurons is the result of feed forword
 	#Zhiyuan end
@@ -131,12 +137,15 @@ class NeuralNet:
 	#Zhiyuan add
 		for i in range(0,self.num_outputs):
 			self.output_layer.neuron_delta[i]= self.output_layer.neuron_outputs[i] *(1- self.output_layer.neuron_outputs[i])* (trainLabel[i]- self.output_layer.neuron_outputs[i])
+		# print "output layer neuron delta"
+		# print self.output_layer.neuron_delta
 		for j in range(0,self.layers[-1].num_neurons):
 			temp=0
 			for k in range(0,self.output_layer.num_neurons):
 				temp+= self.output_layer.weights[k][j] * self.output_layer.neuron_delta[k]
 			self.layers[-1].neuron_delta[j]=  self.layers[-1].neuron_outputs[j] * (1 -  self.layers[-1].neuron_outputs[j]) * temp
-
+		# print "hidden layer neuron delta"
+		# print self.layers[-1].neuron_delta
 		for i in xrange(0,self.num_hidden_layers -1):
 			for j in range(0,self.layers[self.num_hidden_layers - 2 - i].num_neurons):
 				temp=0
@@ -179,7 +188,7 @@ def perceptron(x, threshold):
 
 def validateClassification(classification, label):
 	#Index with the greatest value would be the classification of the sample
-	print "classification: ", classification
+	# print "classification: ", classification
 	classification_index = classification.index( max(classification) )
 	if label[classification_index] == 1:
 		return True
@@ -188,51 +197,75 @@ def validateClassification(classification, label):
 
 def debug():
 	#Jorge Test
-	# trainData = []
-	# labels = []
-	# for sample_num in xrange(0, 10):
-	# 	feature_vector = []
-	# 	for feature_num in xrange(0, 9):
-	# 		feature_vector.append( random.uniform(0, 1) )
-	# 	trainData.append( feature_vector )
-	# 	label = [0, 0, 0, 0]
-	# 	label_index = random.randint(0,3)
-	# 	label[label_index] = 1
-	# 	labels.append( label )
-	# # print trainData 	#DEBUGGING
-	# # print labels	#DEBUGGING
-
-	# nn = NeuralNet(learningRate = 0.9, momentum = 0.1)
-	# nn.printArchitecture()
-	# nn.train(trainData, labels, 100)
-
-	# nn.test(trainData, labels)
+#	 trainData = []
+#	 labels = []
+#	 for sample_num in xrange(0, 10):
+#	 	feature_vector = []
+#	 	for feature_num in xrange(0, 9):
+#	 		feature_vector.append( random.uniform(0, 1) )
+#	 	trainData.append( feature_vector )
+#	 	label = [0, 0, 0, 0]
+#	 	label_index = random.randint(0,3)
+#	 	label[label_index] = 1
+#	 	labels.append( label )
+#	 # print trainData 	#DEBUGGING
+#	 # print labels	#DEBUGGING
+#
+#	 nn = NeuralNet(learningRate = 0.9, momentum = 0.1)
+#	 nn.printArchitecture()
+#	 nn.train(trainData, labels, 100)
+#
+#	 nn.test(trainData, labels)
 
 	#Zhiyuan Test
 	print "Script to test Neural Net class"
 	#Zhiyuan add
-	dataDir='/xxx/xxxx/xxx/'
-	train_data=dataDir + 'train.csv'
-	test_data=dataDir+ 'test.csv'
-	#output_file= dataDir + 'result.csv'
-	fTest = open (test_data,'r')
-	fTrain = open(train_data,'r')
-	#fOut = open(output_file, 'w')
-	#no idea of the structure of data
-	for line in fTrain:
-		Traindata=....
-		Trainlabels=....
-	for line in fTest:
-		#no idea of the structure of data
-		Testdata=....
-		#TestLabels=...
-	nn = NeuralNet(9,10,4)
-	nn.train(Traindata,Trainlabels,10)
-	nn.test(Testdata)
+	dataDir='/Users/zhiyuanchen/Documents/git/'
+	train_data=dataDir + 'TrainData.xls'
+	train_label=dataDir +'TrainLabel.xls'
+	trainD = xlrd.open_workbook(train_data)
+	try:
+		trainData = trainD.sheet_by_name("Sheet1")
+	except:
+		print "no sheet in %s named Sheet1" % fname
+	nrows = trainData.nrows
+	ncols = trainData.ncols
+	traindata_list = []
+	print "nrows %d, ncols %d" % (nrows,ncols)
+	for i in range(0,nrows):
+		row_data = trainData.row_values(i)
+		traindata_list.append(row_data)
+	trainT = xlrd.open_workbook(train_label)
+	try:
+		trainLabels = trainT.sheet_by_name("Sheet1")
+	except:
+		print "no sheet in %s named Sheet1" % fname
+	nrows = trainLabels.nrows
+	ncols = trainLabels.ncols
+	trainLabel_list = []
+	# print "nrows %d, ncols %d" % (nrows,ncols)
+	for i in range(0,nrows):
+		tlabel=[0]*9
+		row_data = trainLabels.row_values(i)
+		label_index = int(row_data[0])
+		tlabel[label_index-1]=1
+		trainLabel_list.append(tlabel)
+	# print "labellist is %d" %len(trainLabel_list )
+	# print "trainlist is %d" %len(traindata_list )
+	nn = NeuralNet(numInputs = 150,numOutputs = 9,learningRate = 1.2, momentum = 0.5)
+	nn.printArchitecture()
 
-	fTest.close()
-	fTrain.close()
-	#fOut.close()
+	small_train=[]
+	small_label=[]
+	small_train.append(traindata_list[0])
+	small_train.append(traindata_list[1])
+	small_label.append(trainLabel_list[0])
+	small_label.append(trainLabel_list[1])
+	nn.train(traindata_list, trainLabel_list, 50)
+	nn.test(traindata_list, trainLabel_list)
+
+
+
 	# #Zhiyuan end
 
 if __name__ == '__main__':
