@@ -12,10 +12,10 @@ Author(s):
 	Jorge Rojas
 
 Genres to be considered: 
-		Trance
+		EDM
 		Indie Rock
 		Jazz
-		Pop
+		Reggae
 
 Track Audio Features Example:
 	{
@@ -54,35 +54,23 @@ REDIRECT_URI = 'http://127.0.0.1:5000/spotify_callback'
 SPOTIFY_PLAYLISTS = {'training':'2VB8ds8bjD78gVHRsCcMTl', 'testing':'6etBG7ccLcMhQb4nUud9UE'}
 GENRE_PLAYLISTS = {
 					'0XUlpafP8eIlIWt3VHSd7q':[1, 0, 0, 0],
-					'05Hd48jdQIz3s8WRrvGnzf':[0, 1, 0, 0],
-					'6XChIaijnUBzPDrQOX02AJ':[0, 1, 0, 0],
-					'570tVSLPdLnRU0z0bqd8Wk':[0, 1, 0, 0],
-					'5iiAkAuvH8doELAEgrCO4U':[0, 1, 0, 0],
 					'5O2ERf8kAYARVVdfCKZ9G7':[0, 1, 0, 0],
-					'3ObJ6Qra3CkV0gNCRTtK0c':[0, 0, 1, 0],
-					'5bMgwxIN2fNPSn3jjvRfE8':[0, 0, 0, 1],
-					'0ijttIJY7IL2Ez3zoMPxwC':[0, 0, 0, 1],
-					'6y23fI1axTBfSSS1iVu2q0':[0, 0, 0, 1],
-					'7dvIeoskAWdAkfa0J8rmrM':[0, 0, 0, 1]
-				}
-PLAYLIST_USERS = {
-					'0XUlpafP8eIlIWt3VHSd7q':'spotify', 
-					'05Hd48jdQIz3s8WRrvGnzf':'mejoresplaylistsspotify',
-					'6XChIaijnUBzPDrQOX02AJ':'spotify',
-					'570tVSLPdLnRU0z0bqd8Wk':'spotify',
-					'5iiAkAuvH8doELAEgrCO4U':'legacysweden',
-					'5O2ERf8kAYARVVdfCKZ9G7':'spotify',
-					'3ObJ6Qra3CkV0gNCRTtK0c':'knivgaffel',
-					'5bMgwxIN2fNPSn3jjvRfE8':'spotify',
-					'0ijttIJY7IL2Ez3zoMPxwC':'spotify',
-					'6y23fI1axTBfSSS1iVu2q0':'spotifybrazilian',
-					'7dvIeoskAWdAkfa0J8rmrM':'spotify',
+					'6XChIaijnUBzPDrQOX02AJ':[0, 1, 0, 0],
+					'6yPRSeVGw7IK7vDiXuXgr4':[0, 1, 0, 0],
+					'570tVSLPdLnRU0z0bqd8Wk':[0, 1, 0, 0],
+					'04MJzJlzOoy5bTytJwDsVL':[0, 0, 1, 0],
+					'5ILSWr90l2Bgk89xuhsysy':[0, 0, 1, 0],
+					'6vaaau50gPDmKcjDrs4pA2':[0, 0, 0, 1],
+					'0ifGUu1vx6PVcCASyG3t8m':[0, 0, 0, 1],
+					'779MortitnXMMJnVSAcOOT':[0, 0, 0, 1],
+					'1JCZJ9vKg2r8eBaBLz14MT':[0, 0, 0, 1],
+					'43SNeW90KHzTpEgaK0OATU':[0, 0, 0, 1]
 				}
 SPOTIFY_API_ENDPOINTS = {	
 							'audio_features': 'v1/audio-features?ids=', 
 							'track': 'v1/tracks/%s', 
 							'playlists': 'v1/users/' + USER_ID + '/playlists/',
-							'playlist_tracks': 'v1/users/%s/playlists/%s/tracks'
+							'playlist_tracks': 'v1/users/spotify/playlists/%s/tracks'
 						}
 
 ''' UTILITY FUNCTIONS'''
@@ -131,8 +119,8 @@ def label_spotify_data(accessToken):
 	missing_tracks = []
 	genre_song_count = [0, 0, 0, 0]
 
-	for playlist_id, user in PLAYLIST_USERS.iteritems():
-		playlist_tracks_url = SPOTIFY_API_URL + SPOTIFY_API_ENDPOINTS['playlist_tracks']%(user, playlist_id)
+	for playlist_id, genre in GENRE_PLAYLISTS.iteritems():
+		playlist_tracks_url = SPOTIFY_API_URL + SPOTIFY_API_ENDPOINTS['playlist_tracks']%playlist_id
 
 		while playlist_tracks_url is not None:
 			res_json = curl(playlist_tracks_url, authToken = accessToken)
@@ -146,8 +134,8 @@ def label_spotify_data(accessToken):
 
 				try:
 					if track_id not in checked_tracks:
-						train_data[track_id].append(GENRE_PLAYLISTS[playlist_id])
-						genre_song_count[GENRE_PLAYLISTS[playlist_id].index(1)] += 1
+						train_data[track_id].append(genre)
+						genre_song_count[genre.index(1)] += 1
 				except KeyError:
 					missing_tracks.append(track_id)
 
@@ -156,8 +144,8 @@ def label_spotify_data(accessToken):
 	print "Number of missing tracks = %s"%len(missing_tracks)
 	print "Genre Count:\nIndie Rock = %s"%genre_song_count[0]
 	print "Jazz = %s"%genre_song_count[1]
-	print "Trance = %s"%genre_song_count[2]
-	print "Pop = %s"%genre_song_count[3]
+	print "EDM = %s"%genre_song_count[2]
+	print "Reggae = %s"%genre_song_count[3]
 	print "Labeled sample: ", train_data['43BLqP9em5cm0F8CWeDTfz']
 	print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 	# print missing_tracks	#DEBUGGING
