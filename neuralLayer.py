@@ -32,7 +32,10 @@ class NeuralLayer:
 		else:
 			#Initialize weights at random if none provided
 			#Plus one included to account for constant weight term
-			self.weights = [ [ random.uniform(-1, 1) ] * (self.num_inputs + 1) ] * self.num_neurons
+			self.weights = []
+			for i in xrange(0,self.num_neurons):
+				vector=[ random.uniform(-1, 1) ] * (self.num_inputs + 1)
+				self.weights.append(vector) 
 
 def debug():
 	print "Script to test Neural Layer class"
