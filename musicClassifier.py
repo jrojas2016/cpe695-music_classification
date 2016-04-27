@@ -19,6 +19,8 @@ def createNetwork(createFile):
 
 def main():
 
+	#Flag to create csv from spotify data
+	create_file = 0
 	try:
 		thread.start_new_thread(createNetwork, (create_file, ) )
 	except:
