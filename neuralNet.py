@@ -6,6 +6,7 @@ Date: 4/16/2016
 
 Author(s): 
 	Jorge Rojas
+	Zhiyuan Chen
 '''
 import math
 import xlrd
@@ -59,8 +60,6 @@ class NeuralNet:
 		for epoch in xrange(0, num_epoch):
 			error=0
 			for sample_id, sample in enumerate(trainSamples):
-				#The arguments for netff and netbp where arbitrarily placed
-				#feel free to modify!
 				outV=self.netff(sample)
 				# print outV
 				for i in xrange(0,len(outV)):
@@ -83,7 +82,7 @@ class NeuralNet:
 				classification = self.netff(sample)	#netff() needs to return network output
 				if validateClassification(classification, labels[sample_id]):
 					num_correct_classifications += 1
-				# print "Sample Label: ", labels[sample_id], " => Classification: ", classification
+				print "Sample Label: ", labels[sample_id], " => Classification: ", classification
 
 			print "Neural Network Accuracy % = ", ( num_correct_classifications/float(total_num_samples) )*100
 
@@ -103,8 +102,12 @@ class NeuralNet:
 				for j in range(0,hidden_layer.num_neurons):
 					temp=0
 					for k in range(0,self.num_inputs):
-						temp+= self.input_values[k] * hidden_layer.weights[j][k]
-			#weights[j]'s length should be num_inputs+1
+						try:
+							temp += self.input_values[k] * hidden_layer.weights[j][k]
+						except TypeError:
+							#Spotify does not have the appropriate feature. Assume it's midway between 0 and 1
+							temp += 0.5 * hidden_layer.weights[j][k]
+					#weights[j]'s length should be num_inputs+1
 					temp += hidden_layer.weights[j][self.num_inputs] # I add one more when initialize the weight
 					# print temp
 					hidden_layer.neuron_outputs[j] = sigmoid(temp)
@@ -162,7 +165,11 @@ class NeuralNet:
 			if hidden_layer_id == 0:
 				for i in range(0,hidden_layer.num_neurons):
 					for j in range(0,self.num_inputs):
-						change=self.learningRate * hidden_layer.neuron_delta[i] * self.input_values[j]
+						try:
+							change=self.learningRate * hidden_layer.neuron_delta[i] * self.input_values[j]
+						except TypeError:
+							#Spotify does not have the appropriate feature. Assume it's midway between 0 and 1
+							change=self.learningRate * hidden_layer.neuron_delta[i] * 0.5
 						hidden_layer.weights[i][j]+= change+ self.momentum * hidden_layer.neuron_momentum[i][j]
 						hidden_layer.neuron_momentum[i][j]= change
 					hidden_layer.weights[i][hidden_layer.num_inputs] += self.learningRate * hidden_layer.neuron_delta[i] + self.momentum * hidden_layer.neuron_momentum[i][hidden_layer.num_inputs]
@@ -263,9 +270,6 @@ def debug():
 	small_label.append(trainLabel_list[1])
 	nn.train(traindata_list, trainLabel_list, 50)
 	nn.test(traindata_list, trainLabel_list)
-
-
-
 	# #Zhiyuan end
 
 if __name__ == '__main__':
