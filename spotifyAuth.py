@@ -28,18 +28,16 @@ Track Audio Features Example:
 		u'type': u'audio_features', u'id': u'2f1sMZx3jWEkswEHq6HFgV', u'mode': 1
 	}
 '''
-
 import json
 import requests
 import requests.auth
 import urllib, urllib2
-from optparse import OptionParser
 from flask import Flask, abort, request
 
 ''' VARIABLES '''
 test_data = {}
 train_data = {}
-access_token = ''
+access_token = []
 
 ''' CONSTANTS '''
 NUM_SONGS = 297
@@ -73,10 +71,61 @@ SPOTIFY_API_ENDPOINTS = {
 							'playlist_tracks': 'v1/users/spotify/playlists/%s/tracks'
 						}
 
-''' UTILITY FUNCTIONS'''
-def crawl_spotify_data(accessToken):
+''' GET FUNCTION '''
+def getAccessToken():
+	return access_token
+
+def getTrainData():
+	return train_data
+
+def getTestData():
+	return test_data
+
+''' UTILITY FUNCTIONS '''
+def isValidState(state):
+	return True
+
+def saveCreatedState(state):
+	pass
+
+def getToken(code):
+	client_auth = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET)
+	post_data = {"grant_type": "authorization_code", "code": code, "redirect_uri": REDIRECT_URI}
+	response = requests.post("https://accounts.spotify.com/api/token", auth=client_auth, data=post_data)
+	token_json = response.json()
+	return token_json["access_token"]
+
+def curl(url, data = None, authToken = None):
+
+	if data is not None:
+		req = urllib2.Request( url, data )
+	else:
+		req = urllib2.Request( url )
+
+	if authToken is not None:
+		req.add_header( 'Authorization', 'Bearer %s'%authToken )
+
+	response = urllib2.urlopen( req )
+	res = response.read()
+	return json.loads(res)
+
+def makeAuthorizationUrl():
+	# Generate a random string for the state parameter
+	# Save it for use later to prevent xsrf attacks
+	from uuid import uuid4
+	state = str(uuid4())
+	saveCreatedState(state)
+	params = {"client_id": CLIENT_ID,
+			  "response_type": "code",
+			  "state": state,
+			  "redirect_uri": REDIRECT_URI,
+			  "duration": "temporary"}
+	url = "https://accounts.spotify.com/authorize?" + urllib.urlencode(params)
+	return url
+
+def crawlSpotifyData(accessToken, playlist):
 	''' Get Training Playlist '''
-	playlist_url = SPOTIFY_API_URL + SPOTIFY_API_ENDPOINTS['playlists'] + SPOTIFY_PLAYLISTS['training']
+	playlist_url = SPOTIFY_API_URL + SPOTIFY_API_ENDPOINTS['playlists'] + SPOTIFY_PLAYLISTS[playlist]
 	# print playlist_url	#DEBUGGING
 	res_json = curl(playlist_url, authToken = accessToken)
 	# print res 	#DEBUGGING
@@ -114,7 +163,7 @@ def crawl_spotify_data(accessToken):
 
 	print "Number of training samples: %s"%len(train_data)
 
-def label_spotify_data(accessToken):
+def labelSpotifyData(accessToken):
 	checked_tracks = []
 	missing_tracks = []
 	genre_song_count = [0, 0, 0, 0]
@@ -150,55 +199,12 @@ def label_spotify_data(accessToken):
 	print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 	# print missing_tracks	#DEBUGGING
 
-def curl(url, data = None, authToken = None):
-
-	if data is not None:
-		req = urllib2.Request( url, data )
-	else:
-		req = urllib2.Request( url )
-
-	if authToken is not None:
-		req.add_header( 'Authorization', 'Bearer %s'%authToken )
-
-	response = urllib2.urlopen( req )
-	res = response.read()
-	return json.loads(res)
-
-def get_token(code):
-	client_auth = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET)
-	post_data = {"grant_type": "authorization_code", "code": code, "redirect_uri": REDIRECT_URI}
-	response = requests.post("https://accounts.spotify.com/api/token", auth=client_auth, data=post_data)
-	token_json = response.json()
-	# expires_json = token_json["expires_in"]
-	# print "Token expires in %s seconds"%expires_json
-	return token_json["access_token"]
-
-def is_valid_state(state):
-	return True
-
-def save_created_state(state):
-	pass
-
 ''' OAUTH2 PROCESS '''
 app = Flask(__name__)
 @app.route('/')
 def homepage():
 	text = '<a href="%s">Authenticate with Spotify</a>'
-	return text % make_authorization_url()
-
-def make_authorization_url():
-	# Generate a random string for the state parameter
-	# Save it for use later to prevent xsrf attacks
-	from uuid import uuid4
-	state = str(uuid4())
-	save_created_state(state)
-	params = {"client_id": CLIENT_ID,
-			  "response_type": "code",
-			  "state": state,
-			  "redirect_uri": REDIRECT_URI,
-			  "duration": "temporary"}
-	url = "https://accounts.spotify.com/authorize?" + urllib.urlencode(params)
-	return url
+	return text % makeAuthorizationUrl()
 
 @app.route('/spotify_callback')
 def spotify_callback():
@@ -206,18 +212,12 @@ def spotify_callback():
 	if error:
 		return "Error: " + error
 	state = request.args.get('state', '')
-	if not is_valid_state(state):
+	if not isValidState(state):
 		# Uh-oh, this request wasn't started by us!
 		abort(403)
 	code = request.args.get('code')
-	# We'll change this next line in just a moment
-	access_token = get_token(code)
-	crawl_spotify_data(access_token)
-	label_spotify_data(access_token)
-	return "got an access token! %s" % access_token
-
-def getTrainData():
-	return train_data
+	access_token.append(getToken(code))
+	return "got an access token! %s" % access_token[0]
 
 def runAuth():
 	app.run(debug=True, port=5000)
