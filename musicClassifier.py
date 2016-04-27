@@ -14,7 +14,8 @@ import spotifyAuth as sa
 
 def createNetwork(createFile):
 	''' TRAIN DATA PROCESSING '''
-
+	# access_token = sa.getAccessToken()
+	# print access_token
 	''' NEURAL NETWORK '''
 
 def main():
