@@ -99,12 +99,14 @@ def waitForAccessToken():
 	# print 'Access token = %s'%access_token
 	return access_token[0]
 
-def createNetwork(createFile, trainFromFile):
+def createNetwork(createFile, trainFromFile, nnParameters):
 	''' TRAIN DATA PROCESSING '''
 	train_data_file_name = 'data/spotifyTrainData.csv'
-	access_token = waitForAccessToken()
-	sa.crawlSpotifyData(access_token)
-	sa.labelSpotifyData(access_token)
+
+	if not trainFromFile:
+		access_token = waitForAccessToken()
+		sa.crawlSpotifyData(access_token)
+		sa.labelSpotifyData(access_token)
 
 	if createFile:
 		createDataFileFromSpotify(train_data_file_name)
@@ -115,43 +117,112 @@ def createNetwork(createFile, trainFromFile):
 			train_data, train_label = getTrainDataFromSpotify()
 
 		''' NEURAL NETWORK '''
-		nn = NN.NeuralNet(numInputs = 9,numOutputs = 4,learningRate = 1.2, momentum = 0.5)
+		nn = NN.NeuralNet(
+						numInputs = nnParameters[0],
+						layers = nnParameters[1],
+						numOutputs = nnParameters[2],
+						learningRate = nnParameters[3], 
+						momentum = nnParameters[4]
+					)
+
 		nn.printArchitecture()
 
-		nn.train(train_data, train_label, num_epoch = 50)
-		nn.test(train_data[:10], train_label[:10])
+		nn.train(train_data, train_label, num_epoch = nnParameters[5])
+		nn.test(train_data, train_label)
 
 def main():
 	parser = OptionParser()
 
-	parser.add_option( "--ecsv",
+	parser.add_option( "-e",
 					dest = "exportCSV",
 					default = 0,
 					help = "Flag to export spotify data to csv file. 1 for true, 0 for false. Default value is 0")
 
-	parser.add_option( "--ofi",
+	parser.add_option( "-E",
+					dest = "numEpoch",
+					default = 50,
+					help = "Number of training iterations over the whole training data set. Default value is 50.")
+
+	parser.add_option( "-f",
 					dest = "openFromFile",
 					default = 0,
 					help = "Flag to train neural network from csv file. 1 for true, 0 for false. Default value is 0")
 
+	parser.add_option( "-i",
+					dest = "numInput",
+					default = 9,
+					help = "Number of input neurons. Default is 9.")
+
+	parser.add_option( "-o",
+					dest = "numOutput",
+					default = 4,
+					help = "Number of output neurons. Default is 4.")
+
+	parser.add_option( "-H",
+					dest = "hiddenLayers",
+					default = "10",
+					help = "String of space-separated number of neurons per layer. Default is one layer of 10 neurons.")
+
+	parser.add_option( "-m",
+					dest = "momentum",
+					default = 0.5,
+					help = "Learning momentum based on previous change in weight value. Default is 0.5.")
+	
+	parser.add_option( "-l",
+					dest = "learningRate",
+					default = 1.2,
+					help = "Learning Rate for each weight change iteration. Default is 1.2.")
+
 	(options, args) = parser.parse_args()
 
-	if isinstance(options.exportCSV, int):
+	try:
 		create_file = int(options.exportCSV)
-	else:
-		sys.exit('--csv argument was not an int value. Please type 0 or 1.')
-
-	if isinstance(options.openFromFile, int):
-		train_from_file = int(options.openFromFile)
-	else:
-		sys.exit('--csv argument was not an int value. Please type 0 or 1.')
+	except ValueError:
+		sys.exit('-e argument can take the values 0 or 1.')
 
 	try:
-		thread.start_new_thread(createNetwork, (create_file, train_from_file, ) )	#No arguments needed. Pass empty tuple
-	except:
-		print "Unable to start thread!"
+		train_from_file = int(options.openFromFile)
+	except ValueError:
+		sys.exit('-f argument can take the values 0 or 1.')
 
-	sa.runAuth()
+	try:
+		num_epoch = int(options.numEpoch)
+	except ValueError:
+		sys.exit('-E argument needs to be an integer.')
+
+	try:
+		num_input = int(options.numInput)
+	except ValueError:
+		sys.exit('-i argument needs to be an integer.')
+
+	try:
+		num_output = int(options.numOutput)
+	except ValueError:
+		sys.exit('-o argument needs to be an integer.')
+
+	try:
+		momentum = float(options.momentum)
+	except ValueError:
+		sys.exit('-m argument needs to be a float.')
+
+	try:
+		learning_rate = float(options.learningRate)
+	except ValueError:
+		sys.exit('-l argument needs to be a float.')
+
+	hidden_layers = [int(num_neurons) for num_neurons in options.hiddenLayers.split(" ")]
+
+	nn_parameters = [num_input, hidden_layers, num_output, learning_rate, momentum, num_epoch]
+
+	if not train_from_file:
+		try:
+			thread.start_new_thread(createNetwork, (create_file, train_from_file, nn_parameters) )	#No arguments needed. Pass empty tuple
+		except:
+			print "Unable to start thread!"
+		sa.runAuth()
+	else:
+		createNetwork(create_file, train_from_file, nn_parameters)
+
 
 if __name__ == '__main__':
 	main()
