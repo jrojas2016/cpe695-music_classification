@@ -40,7 +40,6 @@ train_data = {}
 access_token = []
 
 ''' CONSTANTS '''
-NUM_SONGS = 297
 USER_ID = '1248308979'
 SPOTIFY_API_URL = 'https://api.spotify.com/'
 CLIENT_ID = 'XXXXXXXXXX'	#Visit https://developer.spotify.com to create your ID and Secret!
@@ -49,26 +48,27 @@ CLIENT_SECRET = 'XXXXXXXXXX'
 #This URI can be set in the spotify developer console. Make it your localHost/callback add it and save it
 REDIRECT_URI = 'http://127.0.0.1:5000/spotify_callback'
 #Needed to successfully label the training data
-SPOTIFY_PLAYLISTS = {'training':'2VB8ds8bjD78gVHRsCcMTl', 'testing':'6etBG7ccLcMhQb4nUud9UE'}
+SPOTIFY_TRAINING_PLAYLISTS = '2VB8ds8bjD78gVHRsCcMTl'
 GENRE_PLAYLISTS = {
-					'0XUlpafP8eIlIWt3VHSd7q':[1, 0, 0, 0],
-					'5O2ERf8kAYARVVdfCKZ9G7':[0, 1, 0, 0],
-					'6XChIaijnUBzPDrQOX02AJ':[0, 1, 0, 0],
-					'6yPRSeVGw7IK7vDiXuXgr4':[0, 1, 0, 0],
-					'570tVSLPdLnRU0z0bqd8Wk':[0, 1, 0, 0],
-					'04MJzJlzOoy5bTytJwDsVL':[0, 0, 1, 0],
-					'5ILSWr90l2Bgk89xuhsysy':[0, 0, 1, 0],
-					'6vaaau50gPDmKcjDrs4pA2':[0, 0, 0, 1],
-					'0ifGUu1vx6PVcCASyG3t8m':[0, 0, 0, 1],
-					'779MortitnXMMJnVSAcOOT':[0, 0, 0, 1],
-					'1JCZJ9vKg2r8eBaBLz14MT':[0, 0, 0, 1],
-					'43SNeW90KHzTpEgaK0OATU':[0, 0, 0, 1]
+				'0XUlpafP8eIlIWt3VHSd7q':[1, 0, 0, 0],
+				'5O2ERf8kAYARVVdfCKZ9G7':[0, 1, 0, 0],
+				'6XChIaijnUBzPDrQOX02AJ':[0, 1, 0, 0],
+				'6yPRSeVGw7IK7vDiXuXgr4':[0, 1, 0, 0],
+				'570tVSLPdLnRU0z0bqd8Wk':[0, 1, 0, 0],
+				'04MJzJlzOoy5bTytJwDsVL':[0, 0, 1, 0],
+				'5ILSWr90l2Bgk89xuhsysy':[0, 0, 1, 0],
+				'6vaaau50gPDmKcjDrs4pA2':[0, 0, 0, 1],
+				'0ifGUu1vx6PVcCASyG3t8m':[0, 0, 0, 1],
+				'779MortitnXMMJnVSAcOOT':[0, 0, 0, 1],
+				'1JCZJ9vKg2r8eBaBLz14MT':[0, 0, 0, 1],
+				'43SNeW90KHzTpEgaK0OATU':[0, 0, 0, 1]
 				}
+				
 SPOTIFY_API_ENDPOINTS = {	
-							'audio_features': 'v1/audio-features?ids=', 
-							'track': 'v1/tracks/%s', 
-							'playlists': 'v1/users/' + USER_ID + '/playlists/',
-							'playlist_tracks': 'v1/users/spotify/playlists/%s/tracks'
+					'audio_features': 'v1/audio-features?ids=', 
+					'track': 'v1/tracks/%s', 
+					'playlists': 'v1/users/' + USER_ID + '/playlists/',
+					'playlist_tracks': 'v1/users/spotify/playlists/%s/tracks'
 						}
 
 ''' GET FUNCTION '''
@@ -123,9 +123,9 @@ def makeAuthorizationUrl():
 	url = "https://accounts.spotify.com/authorize?" + urllib.urlencode(params)
 	return url
 
-def crawlSpotifyData(accessToken, playlist):
+def crawlSpotifyData(accessToken):
 	''' Get Training Playlist '''
-	playlist_url = SPOTIFY_API_URL + SPOTIFY_API_ENDPOINTS['playlists'] + SPOTIFY_PLAYLISTS[playlist]
+	playlist_url = SPOTIFY_API_URL + SPOTIFY_API_ENDPOINTS['playlists'] + SPOTIFY_TRAINING_PLAYLISTS
 	# print playlist_url	#DEBUGGING
 	res_json = curl(playlist_url, authToken = accessToken)
 	# print res 	#DEBUGGING
