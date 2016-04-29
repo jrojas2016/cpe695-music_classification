@@ -43,7 +43,7 @@ class NeuralNet:
 			if hidden_layer_id == 0:
 				self.layers.append( nl.NeuralLayer(self.num_inputs, hidden_layer) )
 			else:
-				self.layers.append( nl.NeuralLayer(layers[hidden_layer_id - 1].num_neurons, hidden_layer) )
+				self.layers.append( nl.NeuralLayer(self.layers[hidden_layer_id - 1].num_neurons, hidden_layer) )
 
 	def printArchitecture(self):
 		print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -116,7 +116,7 @@ class NeuralNet:
 					temp=0
 					for k in range(0,self.layers[hidden_layer_id -1].num_neurons):
 						temp+= self.layers[hidden_layer_id -1].neuron_outputs[k]* hidden_layer.weights[j][k]
-					temp += hidden_layer.weights[j][hidden_layer.num_neurons]
+					temp += hidden_layer.weights[j][hidden_layer.num_inputs]
 					hidden_layer.neuron_outputs[j]= sigmoid(temp)
 		for j in range(0,self.num_outputs):
 			temp=0
