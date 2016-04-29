@@ -145,8 +145,8 @@ def main():
 
 	parser.add_option( "-f",
 					dest = "openFromFile",
-					default = 0,
-					help = "Flag to train neural network from csv file. 1 for true, 0 for false. Default value is 0")
+					default = 1,
+					help = "Flag to train neural network from csv file. 1 for true, 0 for false. Default value is 1")
 
 	parser.add_option( "-i",
 					dest = "numInput",
