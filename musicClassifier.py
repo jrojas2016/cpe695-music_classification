@@ -57,7 +57,6 @@ def getTrainDataFromSpotify():
 	train_data = []
 	train_label = []
 	
-	print "Reading Spotify's data..."
 	tempo_normalization, loudness_normalization = getMaxMin()
 	for track_id, track_sample in sa.getTrainData().iteritems():
 		#DEBUGGING
@@ -71,7 +70,7 @@ def getTrainDataFromSpotify():
 			track_sample[2] = (track_sample[2] - tempo_normalization[0])/(tempo_normalization[1] - tempo_normalization[0])
 			track_sample[7] = (track_sample[7] - loudness_normalization[0])/(loudness_normalization[1] - loudness_normalization[0])
 			train_data.append( track_sample )
-	print train_data[0][2], train_data[0][7]
+	# print train_data[0][2], train_data[0][7]
 	return train_data, train_label
 
 def getMaxMin():
@@ -102,7 +101,7 @@ def waitForAccessToken():
 def createNetwork(createFile, trainFromFile, nnParameters):
 	''' TRAIN DATA PROCESSING '''
 	train_data_file_name = 'data/spotifyTrainData.csv'
-
+	print "Train from file: ", trainFromFile, not trainFromFile
 	if not trainFromFile:
 		access_token = waitForAccessToken()
 		sa.crawlSpotifyData(access_token)
@@ -126,9 +125,8 @@ def createNetwork(createFile, trainFromFile, nnParameters):
 					)
 
 		nn.printArchitecture()
-
-		nn.train(train_data, train_label, num_epoch = nnParameters[5])
-		nn.test(train_data, train_label)
+		nn.train(train_data[:800], train_label[:800], num_epoch = nnParameters[5])
+		nn.test(train_data[800:], train_label[800:])
 
 def main():
 	parser = OptionParser()

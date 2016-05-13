@@ -125,6 +125,7 @@ def makeAuthorizationUrl():
 
 def crawlSpotifyData(accessToken):
 	''' Get Training Playlist '''
+	print "Reading Spotify's data..."
 	playlist_url = SPOTIFY_API_URL + SPOTIFY_API_ENDPOINTS['playlists'] + SPOTIFY_TRAINING_PLAYLISTS
 	# print playlist_url	#DEBUGGING
 	res_json = curl(playlist_url, authToken = accessToken)
